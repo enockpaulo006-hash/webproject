@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}My Products | Student Market Place{% endblock %}
+
+{% block content %}
+<section class="products-section">
+    <div class="container">
+        <h1>My Products</h1>
+
+        {% if products %}
+            <div class="product-grid">
+                {% for product in products %}
+                    <article class="product-card">
+                        <img src="{{ product.image.url }}" alt="{{ product.title }}">
+                        <div class="product-card-body">
+                            <h2>{{ product.title }}</h2>
+                            <p class="price">Tshs {{ product.price }}</p>
+                            <p><strong>Status:</strong> {{ product.get_status_display }}</p>
+                            <a href="{% url 'products:detail' product.pk %}" class="btn">View</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>You have not posted any products yet.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

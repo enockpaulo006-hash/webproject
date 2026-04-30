@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}My Orders | ARU student Market{% endblock %}
+
+{% block content %}
+<section class="products-section">
+    <div class="container">
+        <h1>My Orders</h1>
+
+        {% if orders %}
+            <div class="product-grid">
+                {% for order in orders %}
+                    <article class="product-card">
+                        <div class="product-card-body">
+                            <h2>{{ order.product.title }}</h2>
+                            <p><strong>Owner:</strong> {{ order.seller.full_name }}</p>
+                            <p><strong>Phone:</strong> {{ order.buyer_phone }}</p>
+                            <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+                            <p>{{ order.order_message }}</p>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>You have not made any orders yet.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

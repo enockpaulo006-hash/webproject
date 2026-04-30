@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.title }} | Student Market Place{% endblock %}
+
+{% block content %}
+<section class="product-detail-section">
+    <div class="container product-detail">
+        <div class="product-image">
+            <img src="{{ product.image.url }}" alt="{{ product.title }}">
+        </div>
+
+        <div class="product-info">
+            <h1>{{ product.title }}</h1>
+            <p class="price">UGX {{ product.price }}</p>
+            <p><strong>Category:</strong> {{ product.get_category_display }}</p>
+            <p><strong>Condition:</strong> {{ product.get_product_condition_display }}</p>
+            <p><strong>Location:</strong> {{ product.location }}</p>
+            <p><strong>Posted by:</strong> {{ product.seller.full_name }}</p>
+            <p>{{ product.description }}</p>
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'orders:create' product.id %}" class="btn">Order product</a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="btn">Login to Order</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

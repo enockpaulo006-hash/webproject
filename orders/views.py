@@ -1,0 +1,44 @@
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+
+from products.models import Product
+
+from .forms import OrderRequestForm
+from .models import Order
+
+
+@login_required
+def order_create_view(request, product_id):
+    product = get_object_or_404(Product, id=product_id, status="active")
+
+    if product.seller == request.user:
+        messages.error(request, "You cannot order your own product.")
+        return redirect("products:detail", pk=product.id)
+
+    if request.method == "POST":
+        form = OrderRequestForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.product = product
+            order.buyer = request.user
+            order.seller = product.seller
+            order.save()
+            messages.success(request, "Your order request has been sent successfully.")
+            return redirect("orders:my_orders")
+    else:
+        form = OrderRequestForm()
+
+    return render(request, "orders/order_form.html", {"form": form, "product": product})
+
+
+@login_required
+def my_orders_view(request):
+    orders = Order.objects.filter(buyer=request.user).select_related("product", "seller").order_by("-created_at")
+    return render(request, "orders/my_orders.html", {"orders": orders})
+
+
+@login_required
+def received_requests_view(request):
+    orders = Order.objects.filter(seller=request.user).select_related("product", "buyer").order_by("-created_at")
+    return render(request, "orders/received_requests.html", {"orders": orders})
