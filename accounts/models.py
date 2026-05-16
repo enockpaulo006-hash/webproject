@@ -11,9 +11,9 @@ class User(AbstractUser):
     )
 
     username = None
-    full_name = models.CharField(max_length=150)
+    full_name = models.CharField(max_length=150, blank=True)
     email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=20)
+    phone_number = models.CharField(max_length=20, blank=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="user")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

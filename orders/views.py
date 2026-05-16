@@ -1,11 +1,17 @@
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from products.models import Product
 
 from .forms import OrderRequestForm
 from .models import Order
+
+
+ORDER_LIST_VISIBILITY_DAYS = 7
 
 
 @login_required
@@ -34,11 +40,45 @@ def order_create_view(request, product_id):
 
 @login_required
 def my_orders_view(request):
-    orders = Order.objects.filter(buyer=request.user).select_related("product", "seller").order_by("-created_at")
+    visible_since = timezone.now() - timedelta(days=ORDER_LIST_VISIBILITY_DAYS)
+    orders = (
+        Order.objects.filter(buyer=request.user, created_at__gte=visible_since)
+        .select_related("product", "seller")
+        .order_by("-created_at")
+    )
     return render(request, "orders/my_orders.html", {"orders": orders})
 
 
 @login_required
+def order_update_view(request, pk):
+    order = get_object_or_404(
+        Order.objects.select_related("product"),
+        pk=pk,
+        buyer=request.user,
+    )
+
+    if not order.can_buyer_edit:
+        messages.error(request, "You can edit your order only within 3 hours after posting it.")
+        return redirect("orders:my_orders")
+
+    if request.method == "POST":
+        form = OrderRequestForm(request.POST, instance=order)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your order information was updated successfully.")
+            return redirect("orders:my_orders")
+    else:
+        form = OrderRequestForm(instance=order)
+
+    return render(request, "orders/order_edit.html", {"form": form, "order": order})
+
+
+@login_required
 def received_requests_view(request):
-    orders = Order.objects.filter(seller=request.user).select_related("product", "buyer").order_by("-created_at")
+    visible_since = timezone.now() - timedelta(days=ORDER_LIST_VISIBILITY_DAYS)
+    orders = (
+        Order.objects.filter(seller=request.user, created_at__gte=visible_since)
+        .select_related("product", "buyer")
+        .order_by("-created_at")
+    )
     return render(request, "orders/received_requests.html", {"orders": orders})

@@ -1,14 +1,38 @@
 {% extends 'base.html' %}
+{% load socialaccount %}
 
 {% block title %}Login | Student Market Place{% endblock %}
 
 {% block content %}
 <section class="auth-section">
     <div class="container auth-card">
-        <h1>Login</h1>
+        <div class="auth-options">
+            <h1>Login</h1>
+            <p>Choose how you want to continue.</p>
+
+            {% if google_auth_enabled %}
+                <form method="post" action="{% provider_login_url 'google' %}" class="social-auth-form">
+                    {% csrf_token %}
+                    <button type="submit" class="social-btn">
+                        {% include 'includes/google_icon.html' %}
+                        Continue with Google
+                    </button>
+                </form>
+            {% else %}
+                <p class="social-note">Google login will appear here after Google OAuth is configured.</p>
+            {% endif %}
+
+            <div class="social-divider">
+                <span>or continue with email</span>
+            </div>
+        </div>
+
         <form method="post">
             {% csrf_token %}
             {{ form.as_p }}
+            <p class="auth-helper">
+                <a href="{% url 'account_reset_password' %}">Forgot your password?</a>
+            </p>
             <button type="submit" class="btn">Login</button>
         </form>
     </div>

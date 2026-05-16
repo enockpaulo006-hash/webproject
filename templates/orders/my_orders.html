@@ -6,6 +6,7 @@
 <section class="products-section">
     <div class="container">
         <h1>My Orders</h1>
+        <p class="auth-note">Orders older than 7 days are hidden automatically. You can edit your order details only within 3 hours after posting.</p>
 
         {% if orders %}
             <div class="product-grid">
@@ -14,15 +15,22 @@
                         <div class="product-card-body">
                             <h2>{{ order.product.title }}</h2>
                             <p><strong>Owner:</strong> {{ order.seller.full_name }}</p>
-                            <p><strong>Phone:</strong> {{ order.buyer_phone }}</p>
+                            <p><strong>Customer Phone:</strong> {{ order.buyer_phone }}</p>
                             <p><strong>Status:</strong> {{ order.get_status_display }}</p>
                             <p>{{ order.order_message }}</p>
+                            <div class="action-list">
+                                {% if order.can_buyer_edit %}
+                                    <a href="{% url 'orders:edit' order.pk %}" class="btn">Edit Order</a>
+                                {% else %}
+                                    <p class="auth-note">The 3-hour editing time has expired for this order.</p>
+                                {% endif %}
+                            </div>
                         </div>
                     </article>
                 {% endfor %}
             </div>
         {% else %}
-            <p>You have not made any orders yet.</p>
+            <p>You have no visible orders in the last 7 days.</p>
         {% endif %}
     </div>
 </section>

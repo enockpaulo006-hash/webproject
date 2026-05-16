@@ -6,6 +6,7 @@
 <section class="products-section">
     <div class="container">
         <h1>Received Requests</h1>
+        <p class="auth-note">Requests older than 7 days will be deleted automatically.</p>
 
         {% if orders %}
             <div class="product-grid">
@@ -22,7 +23,7 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p>You have not received any requests yet.</p>
+            <p>You have no visible requests in the last 7 days.</p>
         {% endif %}
     </div>
 </section>

@@ -16,7 +16,15 @@
                             <h2>{{ product.title }}</h2>
                             <p class="price">Tshs {{ product.price }}</p>
                             <p><strong>Status:</strong> {{ product.get_status_display }}</p>
-                            <a href="{% url 'products:detail' product.pk %}" class="btn">View</a>
+                            <p>{{ product.description|truncatechars:100 }}</p>
+                            <div class="action-list">
+                                <a href="{% url 'products:detail' product.pk %}" class="btn">View</a>
+                                <a href="{% url 'products:edit' product.pk %}" class="btn product-batch-add">Edit</a>
+                                <form method="post" action="{% url 'products:delete' product.pk %}" onsubmit="return confirm('Delete this product?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </div>
                         </div>
                     </article>
                 {% endfor %}

@@ -1,10 +1,14 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 from products.models import Product
 
 
 class Order(models.Model):
+    EDIT_WINDOW_HOURS = 3
     STATUS_CHOICES = (
         ("new", "New"),
         ("seen", "Seen"),
@@ -39,3 +43,11 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.id} - {self.product.title}"
+
+    @property
+    def edit_deadline(self):
+        return self.created_at + timedelta(hours=self.EDIT_WINDOW_HOURS)
+
+    @property
+    def can_buyer_edit(self):
+        return timezone.now() <= self.edit_deadline

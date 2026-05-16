@@ -1,5 +1,6 @@
+from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.shortcuts import redirect, render
@@ -18,18 +19,36 @@ def register_view(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password"])
             user.save()
+            authenticated_user = authenticate(
+                request,
+                email=user.email,
+                password=form.cleaned_data["password"],
+            )
             messages.success(request, "Your account has been created successfully.")
-            login(request, user)
+            if authenticated_user is not None:
+                login(request, authenticated_user)
             return redirect("core:home")
     else:
         form = UserRegisterForm()
 
-    return render(request, "accounts/register.html", {"form": form})
+    return render(
+        request,
+        "accounts/register.html",
+        {
+            "form": form,
+            "google_auth_enabled": settings.GOOGLE_AUTH_ENABLED,
+        },
+    )
 
 
 class UserLoginView(LoginView):
     template_name = "accounts/login.html"
     authentication_form = UserLoginForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["google_auth_enabled"] = settings.GOOGLE_AUTH_ENABLED
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "You have logged in successfully.")
