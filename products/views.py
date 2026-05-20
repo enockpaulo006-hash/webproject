@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -8,8 +9,88 @@ from .models import Product
 
 
 def product_list_view(request):
+    query = request.GET.get("q", "").strip()
+    selected_category = request.GET.get("category", "")
+
     products = Product.objects.filter(status="active").select_related("seller")
-    return render(request, "products/product_list.html", {"products": products})
+
+    if query:
+        products = products.filter(
+            Q(title__icontains=query)
+            | Q(description__icontains=query)
+            | Q(location__icontains=query)
+        )
+
+    if selected_category:
+        products = products.filter(category=selected_category)
+
+    category_counts = {
+        row["category"]: row["total"]
+        for row in Product.objects.filter(status="active")
+        .values("category")
+        .annotate(total=Count("id"))
+    }
+
+    category_meta = {
+        "electronics": {
+            "icon": "💻",
+            "subtitle": "Laptops, gadgets, and hardware",
+        },
+        "phones_accessories": {
+            "icon": "📱",
+            "subtitle": "Phones, chargers, and cases",
+        },
+        "books_notes": {
+            "icon": "📚",
+            "subtitle": "Textbooks, notes, and study guides",
+        },
+        "fashion": {
+            "icon": "👗",
+            "subtitle": "Clothing, shoes, and accessories",
+        },
+        "hostel_items": {
+            "icon": "🏠",
+            "subtitle": "Dorm supplies and room essentials",
+        },
+        "services": {
+            "icon": "🛠️",
+            "subtitle": "Tutoring, delivery, and repairs",
+        },
+        "other": {
+            "icon": "🔖",
+            "subtitle": "Unique finds and general listings",
+        },
+    }
+
+    categories = []
+    for code, label in Product.CATEGORY_CHOICES:
+        categories.append(
+            {
+                "code": code,
+                "label": label,
+                "count": category_counts.get(code, 0),
+                "icon": category_meta.get(code, {}).get("icon", "🔹"),
+                "subtitle": category_meta.get(code, {}).get(
+                    "subtitle", "Browse products by category"
+                ),
+            }
+        )
+
+    selected_category_label = None
+    if selected_category:
+        selected_category_label = next(
+            (category["label"] for category in categories if category["code"] == selected_category),
+            None,
+        )
+
+    context = {
+        "products": products,
+        "categories": categories,
+        "query": query,
+        "selected_category": selected_category,
+        "selected_category_label": selected_category_label,
+    }
+    return render(request, "products/product_list.html", context)
 
 
 def product_detail_view(request, pk):
