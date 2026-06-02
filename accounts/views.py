@@ -5,8 +5,29 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 
-from .forms import ProfileUpdateForm, UserLoginForm, UserRegisterForm
+from .forms import (
+    OTPVerificationForm,
+    ProfileUpdateForm,
+    UserLoginForm,
+    UserRegisterForm,
+)
+from .utils import (
+    LOGIN_FAILED_ATTEMPTS_KEY,
+    LOGIN_LOCKOUT_MINUTES,
+    LOGIN_LOCKOUT_UNTIL_KEY,
+    MAX_LOGIN_ATTEMPTS,
+    MAX_OTP_ATTEMPTS,
+    OTP_ATTEMPTS_KEY,
+    OTP_EXPIRES_KEY,
+    OTP_NEXT_KEY,
+    OTP_SESSION_KEY,
+    OTP_VERIFIED_KEY,
+    increment_login_failures,
+    is_login_locked_out,
+    send_seller_otp_code,
+)
 
 
 def register_view(request):
@@ -50,8 +71,32 @@ class UserLoginView(LoginView):
         context["google_auth_enabled"] = settings.GOOGLE_AUTH_ENABLED
         return context
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.method.lower() == "post" and is_login_locked_out(request):
+            messages.error(request, "Too many failed login attempts. Please try again later.")
+            return self.form_invalid(self.get_form())
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_invalid(self, form):
+        if not is_login_locked_out(self.request):
+            increment_login_failures(self.request)
+        if is_login_locked_out(self.request):
+            messages.error(
+                self.request,
+                f"Too many failed login attempts. Please wait {LOGIN_LOCKOUT_MINUTES} minutes.",
+            )
+        return super().form_invalid(form)
+
     def form_valid(self, form):
-        messages.success(self.request, "You have logged in successfully.")
+        request = self.request
+        request.session.pop(OTP_VERIFIED_KEY, None)
+        request.session.pop(OTP_SESSION_KEY, None)
+        request.session.pop(OTP_EXPIRES_KEY, None)
+        request.session.pop(OTP_ATTEMPTS_KEY, None)
+        request.session.pop(OTP_NEXT_KEY, None)
+        request.session.pop(LOGIN_FAILED_ATTEMPTS_KEY, None)
+        request.session.pop(LOGIN_LOCKOUT_UNTIL_KEY, None)
+        messages.success(request, "You have logged in successfully.")
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -59,6 +104,57 @@ class UserLoginView(LoginView):
         if user.can_access_admin_panel:
             return reverse("admin:index")
         return "/"
+
+
+@login_required
+def verify_otp_view(request):
+    if request.session.get(OTP_VERIFIED_KEY):
+        return redirect(request.session.get(OTP_NEXT_KEY, "/"))
+
+    if request.method == "POST":
+        form = OTPVerificationForm(request.POST)
+        if form.is_valid():
+            entered_code = form.cleaned_data["otp_code"].strip()
+            stored_code = request.session.get(OTP_SESSION_KEY)
+            expires_at = request.session.get(OTP_EXPIRES_KEY)
+            attempts = request.session.get(OTP_ATTEMPTS_KEY, 0) + 1
+            request.session[OTP_ATTEMPTS_KEY] = attempts
+
+            if expires_at is None or timezone.now().timestamp() > expires_at:
+                messages.error(request, "Your code has expired. A new code has been sent to your email.")
+                send_seller_otp_code(request, request.user)
+                return redirect("accounts:verify_otp")
+
+            if attempts > MAX_OTP_ATTEMPTS:
+                messages.error(request, "Too many attempts. A new code has been sent to your email.")
+                send_seller_otp_code(request, request.user)
+                return redirect("accounts:verify_otp")
+
+            if entered_code == stored_code:
+                request.session[OTP_VERIFIED_KEY] = True
+                request.session.pop(OTP_SESSION_KEY, None)
+                request.session.pop(OTP_EXPIRES_KEY, None)
+                request.session.pop(OTP_ATTEMPTS_KEY, None)
+                if not request.user.is_verified_seller:
+                    request.user.is_verified_seller = True
+                    request.user.save(update_fields=["is_verified_seller"])
+                messages.success(request, "OTP verified. You can continue to seller actions.")
+                return redirect(request.session.get(OTP_NEXT_KEY, "/"))
+
+            messages.error(request, "Invalid verification code.")
+    else:
+        form = OTPVerificationForm()
+        if request.session.get(OTP_SESSION_KEY) is None:
+            send_seller_otp_code(request, request.user)
+
+    return render(request, "accounts/verify_otp.html", {"form": form})
+
+
+@login_required
+def resend_otp_view(request):
+    send_seller_otp_code(request, request.user)
+    messages.success(request, "A new verification code has been sent to your email.")
+    return redirect("accounts:verify_otp")
 
 
 @login_required

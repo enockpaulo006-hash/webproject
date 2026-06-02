@@ -1,4 +1,50 @@
 (function () {
+    const initMobileNavigation = () => {
+        const nav = document.querySelector(".site-nav");
+        const toggle = document.querySelector(".nav-toggle");
+        const links = document.querySelector(".nav-links");
+
+        if (!nav || !toggle || !links) {
+            return;
+        }
+
+        const setOpen = (isOpen) => {
+            nav.classList.toggle("nav-open", isOpen);
+            toggle.setAttribute("aria-expanded", String(isOpen));
+            toggle.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
+        };
+
+        toggle.addEventListener("click", () => {
+            setOpen(!nav.classList.contains("nav-open"));
+        });
+
+        links.addEventListener("click", (event) => {
+            if (event.target.closest("a")) {
+                setOpen(false);
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            if (!nav.classList.contains("nav-open") || nav.contains(event.target)) {
+                return;
+            }
+
+            setOpen(false);
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                setOpen(false);
+            }
+        });
+
+        window.addEventListener("resize", () => {
+            if (window.innerWidth > 768) {
+                setOpen(false);
+            }
+        });
+    };
+
     const initFooterVisibility = () => {
         const footer = document.querySelector(".site-footer");
 
@@ -107,6 +153,7 @@
         updateFormIndices();
     };
 
+    initMobileNavigation();
     initFooterVisibility();
     initProductFormset();
 })();

@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from accounts.utils import seller_otp_required
 from orders.models import Order
 from products.models import Product
 
@@ -12,6 +13,7 @@ from .models import Sale
 
 
 @login_required
+@seller_otp_required
 def complete_sale_view(request, order_id):
     order = get_object_or_404(
         Order.objects.select_related("product", "buyer", "seller"),

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from accounts.utils import seller_otp_required
 from products.models import Product
 
 from .forms import OrderRequestForm
@@ -74,6 +75,7 @@ def order_update_view(request, pk):
 
 
 @login_required
+@seller_otp_required
 def received_requests_view(request):
     visible_since = timezone.now() - timedelta(days=ORDER_LIST_VISIBILITY_DAYS)
     orders = (

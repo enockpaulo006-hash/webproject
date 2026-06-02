@@ -4,6 +4,7 @@ from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from accounts.utils import seller_otp_required
 from .forms import ProductForm, ProductFormSet
 from .models import Product
 
@@ -99,6 +100,7 @@ def product_detail_view(request, pk):
 
 
 @login_required
+@seller_otp_required
 def product_create_view(request):
     if request.method == "POST":
         formset = ProductFormSet(request.POST, request.FILES, prefix="products")
@@ -129,12 +131,14 @@ def product_create_view(request):
 
 
 @login_required
+@seller_otp_required
 def my_products_view(request):
     products = Product.objects.filter(seller=request.user).order_by("-created_at")
     return render(request, "products/my_products.html", {"products": products})
 
 
 @login_required
+@seller_otp_required
 def product_update_view(request, pk):
     product = get_object_or_404(Product, pk=pk, seller=request.user)
 
@@ -151,6 +155,7 @@ def product_update_view(request, pk):
 
 
 @login_required
+@seller_otp_required
 @require_POST
 def product_delete_view(request, pk):
     product = get_object_or_404(Product, pk=pk, seller=request.user)

@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.password_validation import validate_password
 from allauth.socialaccount.forms import SignupForm as SocialSignupForm
 
 User = get_user_model()
@@ -24,7 +25,7 @@ def validate_phone_number(value: str) -> str:
 class UserRegisterForm(forms.ModelForm):
     full_name = forms.CharField(max_length=150)
     phone_number = forms.CharField(max_length=10, min_length=10)
-    password = forms.CharField(min_length=4, widget=forms.PasswordInput)
+    password = forms.CharField(min_length=8, widget=forms.PasswordInput)
     confirm_password = forms.CharField(widget=forms.PasswordInput)
 
     class Meta:
@@ -48,12 +49,24 @@ class UserRegisterForm(forms.ModelForm):
         if password and confirm_password and password != confirm_password:
             self.add_error("confirm_password", "Passwords do not match.")
 
+        if password:
+            validate_password(password, self.instance)
+
         return cleaned_data
 
 
 class UserLoginForm(AuthenticationForm):
     username = forms.EmailField(label="Email")
     password = forms.CharField(widget=forms.PasswordInput)
+
+
+class OTPVerificationForm(forms.Form):
+    otp_code = forms.CharField(
+        max_length=6,
+        min_length=6,
+        label="One-time code",
+        widget=forms.TextInput(attrs={"autocomplete": "one-time-code"}),
+    )
 
 
 class ProfileUpdateForm(forms.ModelForm):
