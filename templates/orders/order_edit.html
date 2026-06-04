@@ -3,6 +3,7 @@
 {% block title %}Edit Order | Student Market Place{% endblock %}
 
 {% block content %}
+{% include 'includes/breadcrumb.html' %}
 <section class="auth-section">
     <div class="container auth-card">
         <div class="auth-options">
@@ -16,7 +17,6 @@
             {% csrf_token %}
             {{ form.as_p }}
             <div class="product-batch-actions">
-                <a href="{% url 'orders:my_orders' %}" class="btn product-batch-add">Back to My Orders</a>
                 <button type="submit" class="btn">Save Changes</button>
             </div>
         </form>

@@ -3,9 +3,15 @@
 {% block title %}My Products | Student Market Place{% endblock %}
 
 {% block content %}
+{% include 'includes/breadcrumb.html' %}
 <section class="products-section">
     <div class="container">
-        <h1>My Products</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1>My Products</h1>
+            <div style="display: flex; gap: 10px;">
+                <a href="{% url 'products:create' %}" class="btn">+ Post New Product</a>
+            </div>
+        </div>
 
         {% if products %}
             <div class="product-grid">

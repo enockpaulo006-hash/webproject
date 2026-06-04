@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.utils import seller_otp_required
@@ -20,7 +21,11 @@ def complete_sale_view(request, order_id):
         id=order_id,
         seller=request.user,
     )
-
+    breadcrumbs = [
+        {"label": "Home", "url": "/"},
+        {"label": "Received Requests", "url": reverse("orders:received_requests")},
+        {"label": "Complete Sale"},
+    ]
     if order.status == "cancelled":
         messages.error(request, "You cannot complete a cancelled order.")
         return redirect("orders:received_requests")
@@ -54,4 +59,4 @@ def complete_sale_view(request, order_id):
     else:
         form = CompleteSaleForm()
 
-    return render(request, "sales/complete_sale.html", {"form": form, "order": order})
+    return render(request, "sales/complete_sale.html", {"form": form, "order": order, "breadcrumbs": breadcrumbs})

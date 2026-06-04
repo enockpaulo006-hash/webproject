@@ -4,6 +4,7 @@
 {% block title %}Login | Student Market Place{% endblock %}
 
 {% block content %}
+{% include 'includes/breadcrumb.html' %}
 <section class="auth-section">
     <div class="container auth-card">
         <div class="auth-options">
@@ -35,6 +36,11 @@
             </p>
             <button type="submit" class="btn">Login</button>
         </form>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <p class="auth-helper">
+            </p>
+        </div>
     </div>
 </section>
 {% endblock %}

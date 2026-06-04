@@ -49,6 +49,8 @@ def register_view(request):
             if authenticated_user is not None:
                 login(request, authenticated_user)
             return redirect("core:home")
+        else:
+            messages.error(request, "Please fix the errors below to complete registration.")
     else:
         form = UserRegisterForm()
 
@@ -58,6 +60,7 @@ def register_view(request):
         {
             "form": form,
             "google_auth_enabled": settings.GOOGLE_AUTH_ENABLED,
+            "breadcrumbs": [{"label": "Home", "url": "/"}, {"label": "Register"}],
         },
     )
 
@@ -69,6 +72,7 @@ class UserLoginView(LoginView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["google_auth_enabled"] = settings.GOOGLE_AUTH_ENABLED
+        context["breadcrumbs"] = [{"label": "Home", "url": "/"}, {"label": "Login"}]
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -147,7 +151,7 @@ def verify_otp_view(request):
         if request.session.get(OTP_SESSION_KEY) is None:
             send_seller_otp_code(request, request.user)
 
-    return render(request, "accounts/verify_otp.html", {"form": form})
+    return render(request, "accounts/verify_otp.html", {"form": form, "breadcrumbs": [{"label": "Home", "url": "/"}, {"label": "Verify OTP"}]})
 
 
 @login_required
@@ -175,4 +179,4 @@ def profile_view(request):
     else:
         form = ProfileUpdateForm(instance=request.user)
 
-    return render(request, "accounts/profile.html", {"form": form})
+    return render(request, "accounts/profile.html", {"form": form, "breadcrumbs": [{"label": "Home", "url": "/"}, {"label": "Profile"}]})

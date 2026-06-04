@@ -4,6 +4,7 @@
 {% block title %}Register | Student Market Place{% endblock %}
 
 {% block content %}
+{% include 'includes/breadcrumb.html' %}
 <section class="auth-section">
     <div class="container auth-card">
         <div class="auth-options">
@@ -29,9 +30,15 @@
 
         <form method="post">
             {% csrf_token %}
+            {{ form.non_field_errors }}
             {{ form.as_p }}
             <button type="submit" class="btn">Register</button>
         </form>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <p class="auth-helper">
+            </p>
+        </div>
     </div>
 </section>
 {% endblock %}

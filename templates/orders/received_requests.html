@@ -3,9 +3,12 @@
 {% block title %}Received Requests | ARU student Market{% endblock %}
 
 {% block content %}
+{% include 'includes/breadcrumb.html' %}
 <section class="products-section">
     <div class="container">
-        <h1>Received Requests</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1>Received Requests</h1>
+        </div>
         <p class="auth-note">Requests older than 7 days will be deleted automatically.</p>
 
         {% if orders %}

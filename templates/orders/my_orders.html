@@ -3,9 +3,12 @@
 {% block title %}My Orders | ARU student Market{% endblock %}
 
 {% block content %}
+{% include 'includes/breadcrumb.html' %}
 <section class="products-section">
     <div class="container">
-        <h1>My Orders</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1>My Orders</h1>
+        </div>
         <p class="auth-note">Orders older than 7 days are hidden automatically. You can edit your order details only within 3 hours after posting.</p>
 
         {% if orders %}

@@ -153,7 +153,80 @@
         updateFormIndices();
     };
 
+    const initMessages = () => {
+        const container = document.querySelector('.messages');
+        if (!container) return;
+
+        const messages = Array.from(container.querySelectorAll('.message'));
+        if (!messages.length) return;
+
+        messages.forEach((msg) => {
+            // Allow manual dismissal on click
+            msg.style.cursor = 'pointer';
+            msg.addEventListener('click', () => {
+                msg.style.transition = 'opacity 300ms ease, height 300ms ease, margin 300ms ease, padding 300ms ease';
+                msg.style.opacity = '0';
+                msg.style.padding = '0';
+                msg.style.margin = '0';
+                setTimeout(() => msg.remove(), 350);
+            });
+
+            // Auto-hide after 4 seconds
+            setTimeout(() => {
+                try {
+                    msg.style.transition = 'opacity 500ms ease, height 300ms ease, margin 300ms ease, padding 300ms ease';
+                    msg.style.opacity = '0';
+                    msg.style.padding = '0';
+                    msg.style.margin = '0';
+                    setTimeout(() => {
+                        if (msg.parentElement) msg.remove();
+                    }, 520);
+                } catch (e) {
+                    // ignore
+                }
+            }, 4000);
+        });
+    };
+
+    const initProductContact = () => {
+        const root = document.querySelector('.seller-contact-card');
+        if (!root) return;
+
+        root.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-contact-action]');
+            if (!button) return;
+
+            const action = button.dataset.contactAction;
+            const details = root.querySelector('[data-contact-panel="details"]');
+            const request = root.querySelector('[data-contact-panel="request"]');
+            const sent = root.querySelector('[data-contact-panel="sent"]');
+
+            if (action === 'show-contact') {
+                const isHidden = details.classList.contains('hidden');
+                details.classList.toggle('hidden', !isHidden);
+                button.textContent = isHidden ? 'Hide contact' : 'Show contact';
+                request.classList.add('hidden');
+                sent.classList.add('hidden');
+            }
+
+            if (action === 'request-call') {
+                request.classList.remove('hidden');
+                details.classList.add('hidden');
+                sent.classList.add('hidden');
+                const showButton = root.querySelector('[data-contact-action="show-contact"]');
+                if (showButton) showButton.textContent = 'Show contact';
+            }
+
+            if (action === 'send-request') {
+                request.classList.add('hidden');
+                sent.classList.remove('hidden');
+            }
+        });
+    };
+
     initMobileNavigation();
     initFooterVisibility();
     initProductFormset();
+    initMessages();
+    initProductContact();
 })();

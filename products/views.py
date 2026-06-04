@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from accounts.utils import seller_otp_required
@@ -90,18 +91,32 @@ def product_list_view(request):
         "query": query,
         "selected_category": selected_category,
         "selected_category_label": selected_category_label,
+        "breadcrumbs": [
+            {"label": "Home", "url": "/"},
+            {"label": "Products"},
+        ],
     }
     return render(request, "products/product_list.html", context)
 
 
 def product_detail_view(request, pk):
     product = get_object_or_404(Product.objects.select_related("seller"), pk=pk, status="active")
-    return render(request, "products/product_detail.html", {"product": product})
+    breadcrumbs = [
+        {"label": "Home", "url": "/"},
+        {"label": "Products", "url": reverse("products:list")},
+        {"label": product.title},
+    ]
+    return render(request, "products/product_detail.html", {"product": product, "breadcrumbs": breadcrumbs})
 
 
 @login_required
 @seller_otp_required
 def product_create_view(request):
+    breadcrumbs = [
+        {"label": "Home", "url": "/"},
+        {"label": "My Products", "url": reverse("products:my_products")},
+        {"label": "Post Product"},
+    ]
     if request.method == "POST":
         formset = ProductFormSet(request.POST, request.FILES, prefix="products")
         if formset.is_valid():
@@ -127,20 +142,33 @@ def product_create_view(request):
     else:
         formset = ProductFormSet(prefix="products")
 
-    return render(request, "products/product_form.html", {"formset": formset})
+    return render(
+        request,
+        "products/product_form.html",
+        {"formset": formset, "breadcrumbs": breadcrumbs},
+    )
 
 
 @login_required
 @seller_otp_required
 def my_products_view(request):
     products = Product.objects.filter(seller=request.user).order_by("-created_at")
-    return render(request, "products/my_products.html", {"products": products})
+    breadcrumbs = [
+        {"label": "Home", "url": "/"},
+        {"label": "My Products"},
+    ]
+    return render(request, "products/my_products.html", {"products": products, "breadcrumbs": breadcrumbs})
 
 
 @login_required
 @seller_otp_required
 def product_update_view(request, pk):
     product = get_object_or_404(Product, pk=pk, seller=request.user)
+    breadcrumbs = [
+        {"label": "Home", "url": "/"},
+        {"label": "My Products", "url": reverse("products:my_products")},
+        {"label": "Edit Product"},
+    ]
 
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES, instance=product)
@@ -151,7 +179,7 @@ def product_update_view(request, pk):
     else:
         form = ProductForm(instance=product)
 
-    return render(request, "products/product_edit.html", {"form": form, "product": product})
+    return render(request, "products/product_edit.html", {"form": form, "product": product, "breadcrumbs": breadcrumbs})
 
 
 @login_required
