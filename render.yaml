@@ -1,5 +1,6 @@
 databases:
   - name: student-marketplace-db
+    plan: free
     databaseName: student_marketplace
     user: student_marketplace
 
@@ -7,6 +8,7 @@ services:
   - type: web
     name: student-marketplace
     runtime: python
+    plan: free
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate
     startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60
     healthCheckPath: /healthz/
