@@ -31,7 +31,7 @@
             <a class="market-category-tile{% if not selected_category %} active{% endif %}" href="{% url 'products:list' %}{% if query %}?q={{ query|urlencode }}{% endif %}">
                 <span class="category-icon" aria-hidden="true">ALL</span>
                 <strong>All</strong>
-                <small>{{ products|length }} shown</small>
+                <small>{{ total_products }} live</small>
             </a>
 
             {% for category in categories %}
@@ -54,7 +54,7 @@
             <div class="product-grid">
                 {% for product in products %}
                     <article class="product-card">
-                        <img src="{{ product.image.url }}" alt="{{ product.title }}">
+                        <img src="{{ product.image.url }}" alt="{{ product.title }}" loading="lazy" decoding="async">
                         <div class="product-card-body">
                             <span class="product-tag">{{ product.get_category_display }}</span>
                             <h2>{{ product.title }}</h2>
@@ -65,6 +65,22 @@
                     </article>
                 {% endfor %}
             </div>
+
+            {% if page_obj.has_other_pages %}
+                <nav class="pagination" aria-label="Product pages">
+                    {% if page_obj.has_previous %}
+                        <a class="pagination-link" href="?{% if page_query %}{{ page_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                    {% endif %}
+
+                    <span class="pagination-status">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+
+                    {% if page_obj.has_next %}
+                        <a class="pagination-link" href="?{% if page_query %}{{ page_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                    {% endif %}
+                </nav>
+            {% endif %}
         {% else %}
             <p>No products are available yet.</p>
         {% endif %}

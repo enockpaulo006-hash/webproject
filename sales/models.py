@@ -35,6 +35,10 @@ class SellerPayment(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["seller", "status"], name="payment_seller_status_idx"),
+            models.Index(fields=["status", "-created_at"], name="payment_status_created_idx"),
+        ]
 
     def __str__(self):
         return f"Payment #{self.id} - {self.seller.email}"
@@ -82,6 +86,11 @@ class Sale(models.Model):
 
     class Meta:
         ordering = ["-completed_at", "-created_at"]
+        indexes = [
+            models.Index(fields=["seller", "-completed_at"], name="sale_seller_completed_idx"),
+            models.Index(fields=["buyer", "-completed_at"], name="sale_buyer_completed_idx"),
+            models.Index(fields=["fee_status", "-completed_at"], name="sale_fee_completed_idx"),
+        ]
 
     def __str__(self):
         return f"Sale #{self.id} - {self.product.title}"

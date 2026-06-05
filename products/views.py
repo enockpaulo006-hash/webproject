@@ -1,5 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -14,17 +16,17 @@ def product_list_view(request):
     query = request.GET.get("q", "").strip()
     selected_category = request.GET.get("category", "")
 
-    products = Product.objects.filter(status="active").select_related("seller")
+    products_queryset = Product.objects.filter(status="active").select_related("seller")
 
     if query:
-        products = products.filter(
+        products_queryset = products_queryset.filter(
             Q(title__icontains=query)
             | Q(description__icontains=query)
             | Q(location__icontains=query)
         )
 
     if selected_category:
-        products = products.filter(category=selected_category)
+        products_queryset = products_queryset.filter(category=selected_category)
 
     category_counts = {
         row["category"]: row["total"]
@@ -85,8 +87,16 @@ def product_list_view(request):
             None,
         )
 
+    paginator = Paginator(products_queryset, settings.PRODUCTS_PER_PAGE)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    page_query_params = request.GET.copy()
+    page_query_params.pop("page", None)
+
     context = {
-        "products": products,
+        "products": page_obj.object_list,
+        "page_obj": page_obj,
+        "total_products": paginator.count,
+        "page_query": page_query_params.urlencode(),
         "categories": categories,
         "query": query,
         "selected_category": selected_category,

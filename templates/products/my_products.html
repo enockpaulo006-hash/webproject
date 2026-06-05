@@ -17,7 +17,7 @@
             <div class="product-grid">
                 {% for product in products %}
                     <article class="product-card">
-                        <img src="{{ product.image.url }}" alt="{{ product.title }}">
+                        <img src="{{ product.image.url }}" alt="{{ product.title }}" loading="lazy" decoding="async">
                         <div class="product-card-body">
                             <h2>{{ product.title }}</h2>
                             <p class="price">Tshs {{ product.price }}</p>

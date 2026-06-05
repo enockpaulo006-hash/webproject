@@ -5,8 +5,10 @@ from allauth.account import views as account_views
 from django.urls import include, path
 
 from accounts.views import UserLoginView, logout_view, register_view
+from core.views import health_check
 
 urlpatterns = [
+    path("healthz/", health_check, name="health_check"),
     path("admin/", admin.site.urls),
     path("accounts/login/", UserLoginView.as_view(), name="account_login"),
     path("accounts/logout/", logout_view, name="account_logout"),

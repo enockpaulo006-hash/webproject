@@ -1,13 +1,18 @@
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
 from django.db.models import Count
 from django.shortcuts import render
 
 from products.models import Product
 
 
+def health_check(request):
+    return JsonResponse({"status": "ok"})
+
+
 def home(request):
     active_products = Product.objects.filter(status="active")
-    featured_products = active_products.select_related("seller")[:6]
+    featured_products = list(active_products.select_related("seller")[:6])
     category_totals = {
         row["category"]: row["total"]
         for row in active_products.values("category").annotate(total=Count("id"))

@@ -24,6 +24,7 @@ from .utils import (
     OTP_NEXT_KEY,
     OTP_SESSION_KEY,
     OTP_VERIFIED_KEY,
+    has_pending_seller_otp,
     increment_login_failures,
     is_login_locked_out,
     send_seller_otp_code,
@@ -148,7 +149,7 @@ def verify_otp_view(request):
             messages.error(request, "Invalid verification code.")
     else:
         form = OTPVerificationForm()
-        if request.session.get(OTP_SESSION_KEY) is None:
+        if not has_pending_seller_otp(request):
             send_seller_otp_code(request, request.user)
 
     return render(request, "accounts/verify_otp.html", {"form": form, "breadcrumbs": [{"label": "Home", "url": "/"}, {"label": "Verify OTP"}]})

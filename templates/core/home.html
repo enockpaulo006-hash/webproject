@@ -41,9 +41,9 @@
         <div class="hero-visual">
             {% if featured_products %}
                 <div class="hero-mosaic">
-                    {% for product in featured_products|slice:":3" %}
-                        <article class="hero-mosaic-card{% if forloop.first %} hero-mosaic-card-large{% endif %}">
-                            <img src="{{ product.image.url }}" alt="{{ product.title }}">
+                    {% for product in featured_products|slice:":4" %}
+                        <article class="hero-mosaic-card">
+                            <img src="{{ product.image.url }}" alt="{{ product.title }}" decoding="async">
                             <div class="hero-mosaic-copy">
                                 <p>{{ product.get_category_display }}</p>
                                 <h2>{{ product.title }}</h2>
@@ -118,7 +118,7 @@
             <div class="product-grid home-product-grid">
                 {% for product in featured_products %}
                     <article class="product-card home-product-card">
-                        <img src="{{ product.image.url }}" alt="{{ product.title }}">
+                        <img src="{{ product.image.url }}" alt="{{ product.title }}" loading="lazy" decoding="async">
                         <div class="product-card-body">
                             <span class="product-tag">{{ product.get_category_display }}</span>
                             <h2>{{ product.title }}</h2>

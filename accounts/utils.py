@@ -1,7 +1,10 @@
 from datetime import timedelta
 from functools import wraps
+import logging
 
 from django.conf import settings
+from django.contrib import messages
+from django.core.mail import get_connection
 from django.core.mail import send_mail
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -20,6 +23,7 @@ LOGIN_FAILED_ATTEMPTS_KEY = "login_failed_attempts"
 LOGIN_LOCKOUT_UNTIL_KEY = "login_lockout_until"
 MAX_LOGIN_ATTEMPTS = 5
 LOGIN_LOCKOUT_MINUTES = 15
+logger = logging.getLogger(__name__)
 
 def generate_otp_code() -> str:
     return get_random_string(length=6, allowed_chars="0123456789")
@@ -27,7 +31,7 @@ def generate_otp_code() -> str:
 
 def send_seller_otp_code(request, user):
     if not user.email:
-        return
+        return False
 
     otp_code = generate_otp_code()
     expires_at = timezone.now() + timedelta(minutes=OTP_VALIDITY_MINUTES)
@@ -42,7 +46,39 @@ def send_seller_otp_code(request, user):
         "Enter this code to continue creating or updating your listings."
     )
 
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+    try:
+        connection = get_connection(timeout=settings.EMAIL_TIMEOUT)
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+            connection=connection,
+        )
+    except Exception:
+        logger.exception("Failed to send seller OTP email to user %s", user.pk)
+        messages.error(
+            request,
+            "We could not send the verification email right now. Please try again later.",
+        )
+        return False
+
+    return True
+
+
+def has_pending_seller_otp(request):
+    expires_at = request.session.get(OTP_EXPIRES_KEY)
+    if not request.session.get(OTP_SESSION_KEY) or expires_at is None:
+        return False
+
+    if timezone.now().timestamp() > expires_at:
+        request.session.pop(OTP_SESSION_KEY, None)
+        request.session.pop(OTP_EXPIRES_KEY, None)
+        request.session.pop(OTP_ATTEMPTS_KEY, None)
+        return False
+
+    return True
 
 
 def is_login_locked_out(request):
@@ -75,7 +111,8 @@ def seller_otp_required(view_func):
             return view_func(request, *args, **kwargs)
 
         request.session[OTP_NEXT_KEY] = request.get_full_path()
-        send_seller_otp_code(request, request.user)
+        if not has_pending_seller_otp(request):
+            send_seller_otp_code(request, request.user)
         return redirect(reverse("accounts:verify_otp"))
 
     return _wrapped_view
