@@ -119,6 +119,9 @@ def increment_login_failures(request):
 def seller_otp_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
+        if not getattr(settings, "SELLER_OTP_ENABLED", True):
+            return view_func(request, *args, **kwargs)
+
         if request.session.get(OTP_VERIFIED_KEY):
             return view_func(request, *args, **kwargs)
 

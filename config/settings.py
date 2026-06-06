@@ -212,6 +212,7 @@ PRODUCT_IMAGE_MAX_WIDTH = config('PRODUCT_IMAGE_MAX_WIDTH', default=1200, cast=i
 PRODUCT_IMAGE_MAX_HEIGHT = config('PRODUCT_IMAGE_MAX_HEIGHT', default=1200, cast=int)
 PRODUCT_IMAGE_QUALITY = config('PRODUCT_IMAGE_QUALITY', default=82, cast=int)
 PRODUCTS_PER_PAGE = config('PRODUCTS_PER_PAGE', default=12, cast=int)
+SELLER_OTP_ENABLED = config('SELLER_OTP_ENABLED', default=False, cast=bool)
 
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
 GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')

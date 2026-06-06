@@ -35,6 +35,8 @@ services:
         value: "1200"
       - key: PRODUCT_IMAGE_QUALITY
         value: "82"
+      - key: SELLER_OTP_ENABLED
+        value: 'False'
       - key: EMAIL_BACKEND
         value: accounts.email_backends.ResendEmailBackend
       - key: RESEND_API_KEY
