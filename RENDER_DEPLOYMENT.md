@@ -29,6 +29,9 @@ PRODUCT_IMAGE_MAX_WIDTH=1200
 PRODUCT_IMAGE_MAX_HEIGHT=1200
 PRODUCT_IMAGE_QUALITY=82
 EMAIL_TIMEOUT=5
+EMAIL_BACKEND=accounts.email_backends.ResendEmailBackend
+RESEND_API_KEY=<your Resend API key>
+RESEND_FROM_EMAIL=ARUMarket <onboarding@resend.dev>
 ```
 
 ## Uploaded product images
@@ -53,7 +56,17 @@ Do not commit local uploaded media, browser cache folders, SQLite databases, or 
 
 ## Email OTP
 
-The app now handles SMTP failures gracefully. Render Free services can have SMTP limits, so use a supported email provider/API or a paid service if Gmail SMTP does not send.
+The app now supports the Resend HTTPS email API for OTP emails. This avoids SMTP ports, which are blocked on Render Free services.
+
+Set these environment variables on the `student-marketplace` web service:
+
+```txt
+EMAIL_BACKEND=accounts.email_backends.ResendEmailBackend
+RESEND_API_KEY=<your Resend API key>
+RESEND_FROM_EMAIL=ARUMarket <onboarding@resend.dev>
+```
+
+For real users, verify your domain in Resend and change `RESEND_FROM_EMAIL` to an address on that domain. Keep `EMAIL_BACKEND` set to `accounts.email_backends.ResendEmailBackend` on Render Free so the app uses HTTPS instead of SMTP.
 
 ## Free plan cold starts
 

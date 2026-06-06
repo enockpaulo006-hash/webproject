@@ -35,5 +35,11 @@ services:
         value: "1200"
       - key: PRODUCT_IMAGE_QUALITY
         value: "82"
+      - key: EMAIL_BACKEND
+        value: accounts.email_backends.ResendEmailBackend
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        value: ARUMarket <onboarding@resend.dev>
       - key: EMAIL_TIMEOUT
         value: "5"

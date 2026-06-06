@@ -157,8 +157,8 @@ def verify_otp_view(request):
 
 @login_required
 def resend_otp_view(request):
-    send_seller_otp_code(request, request.user)
-    messages.success(request, "A new verification code has been sent to your email.")
+    if send_seller_otp_code(request, request.user):
+        messages.success(request, "A new verification code has been sent to your email.")
     return redirect("accounts:verify_otp")
 
 

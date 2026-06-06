@@ -25,6 +25,17 @@ MAX_LOGIN_ATTEMPTS = 5
 LOGIN_LOCKOUT_MINUTES = 15
 logger = logging.getLogger(__name__)
 
+
+def clear_seller_otp_session(request):
+    for key in (
+        OTP_SESSION_KEY,
+        OTP_EXPIRES_KEY,
+        OTP_VERIFIED_KEY,
+        OTP_ATTEMPTS_KEY,
+    ):
+        request.session.pop(key, None)
+
+
 def generate_otp_code() -> str:
     return get_random_string(length=6, allowed_chars="0123456789")
 
@@ -57,6 +68,7 @@ def send_seller_otp_code(request, user):
             connection=connection,
         )
     except Exception:
+        clear_seller_otp_session(request)
         logger.exception("Failed to send seller OTP email to user %s", user.pk)
         messages.error(
             request,
