@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import dj_database_url
@@ -30,6 +31,10 @@ CSRF_TRUSTED_ORIGINS = csv_config(
     "CSRF_TRUSTED_ORIGINS",
     default="http://127.0.0.1,http://localhost,https://*.onrender.com",
 )
+
+CLOUDINARY_URL = config("CLOUDINARY_URL", default="")
+if CLOUDINARY_URL:
+    os.environ.setdefault("CLOUDINARY_URL", CLOUDINARY_URL)
 
 
 
@@ -170,6 +175,11 @@ STORAGES = {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
     },
 }
+
+if CLOUDINARY_URL:
+    STORAGES['default'] = {
+        'BACKEND': 'config.storage.CloudinaryMediaStorage',
+    }
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = Path(config('MEDIA_ROOT', default=str(BASE_DIR / 'media')))

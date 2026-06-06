@@ -37,6 +37,8 @@ services:
         value: "82"
       - key: SELLER_OTP_ENABLED
         value: 'False'
+      - key: CLOUDINARY_URL
+        sync: false
       - key: EMAIL_BACKEND
         value: accounts.email_backends.ResendEmailBackend
       - key: RESEND_API_KEY

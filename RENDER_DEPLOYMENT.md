@@ -28,6 +28,8 @@ PRODUCTS_PER_PAGE=12
 PRODUCT_IMAGE_MAX_WIDTH=1200
 PRODUCT_IMAGE_MAX_HEIGHT=1200
 PRODUCT_IMAGE_QUALITY=82
+SELLER_OTP_ENABLED=False
+CLOUDINARY_URL=<your Cloudinary API environment variable>
 EMAIL_TIMEOUT=5
 EMAIL_BACKEND=accounts.email_backends.ResendEmailBackend
 RESEND_API_KEY=<your Resend API key>
@@ -51,6 +53,17 @@ python manage.py optimize_product_images
 ```
 
 Render's normal filesystem is temporary. For permanent user uploads, use a persistent disk on a paid Render service or cloud storage such as S3/Cloudinary.
+
+## Product Images
+
+For Render Free, use Cloudinary for uploaded product images:
+
+1. Create a Cloudinary account.
+2. In Cloudinary, copy the API environment variable. It looks like `cloudinary://API_KEY:API_SECRET@CLOUD_NAME`.
+3. In Render, set `CLOUDINARY_URL` to that full value.
+4. Redeploy the service.
+
+When `CLOUDINARY_URL` is set, uploaded product images are stored in Cloudinary and `{{ product.image.url }}` will render a Cloudinary HTTPS image URL. Existing products that were uploaded before Cloudinary was enabled may need their images uploaded again.
 
 Do not commit local uploaded media, browser cache folders, SQLite databases, or Python bytecode. They make Render deploys larger and can accidentally publish local-only data.
 
