@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
@@ -10,6 +12,9 @@ from django.views.decorators.http import require_POST
 from accounts.utils import seller_otp_required
 from .forms import ProductForm, ProductFormSet
 from .models import Product
+
+
+logger = logging.getLogger(__name__)
 
 
 def product_list_view(request):
@@ -132,14 +137,26 @@ def product_create_view(request):
         if formset.is_valid():
             created_products = 0
 
-            for form in formset:
-                if not form.cleaned_data:
-                    continue
+            try:
+                for form in formset:
+                    if not form.cleaned_data:
+                        continue
 
-                product = form.save(commit=False)
-                product.seller = request.user
-                product.save()
-                created_products += 1
+                    product = form.save(commit=False)
+                    product.seller = request.user
+                    product.save()
+                    created_products += 1
+            except Exception:
+                logger.exception("Failed to save product or upload product image.")
+                messages.error(
+                    request,
+                    "We could not upload the product image right now. Please check the image storage settings and try again.",
+                )
+                return render(
+                    request,
+                    "products/product_form.html",
+                    {"formset": formset, "breadcrumbs": breadcrumbs},
+                )
 
             if created_products == 1:
                 messages.success(request, "Your product has been posted successfully.")
@@ -183,7 +200,15 @@ def product_update_view(request, pk):
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
-            form.save()
+            try:
+                form.save()
+            except Exception:
+                logger.exception("Failed to update product or upload product image.")
+                messages.error(
+                    request,
+                    "We could not upload the product image right now. Please check the image storage settings and try again.",
+                )
+                return render(request, "products/product_edit.html", {"form": form, "product": product, "breadcrumbs": breadcrumbs})
             messages.success(request, "Your product has been updated successfully.")
             return redirect("products:my_products")
     else:
